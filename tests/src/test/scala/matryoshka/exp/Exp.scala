@@ -49,6 +49,31 @@ object Exp {
           Let(_, _, _))))
   }
 
+  implicit val cogen: Delay[Cogen, Exp] = new Delay[Cogen, Exp] {
+    private[this] implicit val cogenSymbol: Cogen[Symbol] =
+      Cogen[String].contramap(_.name)
+
+    def apply[A](c: Cogen[A]) = {
+      implicit val cc = c
+      Cogen((seed: org.scalacheck.rng.Seed, exp: Exp[A]) =>
+        exp match {
+          case Num(value) =>
+            Cogen[Int].perturb(seed, value)
+          case Mul(left, right) =>
+            Cogen[(A, A)].perturb(seed, (left, right))
+          case Var(value) =>
+            Cogen[String].perturb(seed, value.name)
+          case Lambda(param, body) =>
+            Cogen[(Symbol, A)].perturb(seed, (param, body))
+          case Apply(func, arg) =>
+            Cogen[(A, A)].perturb(seed, (func, arg))
+          case Let(name, value, inBody) =>
+            Cogen[(Symbol, A, A)].perturb(seed, (name, value, inBody))
+        }
+      )
+    }
+  }
+
   implicit val traverse: Traverse[Exp] = new Traverse[Exp] {
     def traverseImpl[G[_], A, B](fa: Exp[A])(f: A => G[B])(implicit G: Applicative[G]): G[Exp[B]] = fa match {
       case Num(v)           => G.point(Num(v))

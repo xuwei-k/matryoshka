@@ -37,6 +37,6 @@ class ListFSpec extends Specification with ScalaCheck with CheckAll with Algebra
     checkAll(bitraverse.laws[ListF])
   }
 
-  checkAlgebraIsoLaws("ListF ⇔ List", ListF.listIso[Int])(Arbitrary(Gen.listOf(Arbitrary.arbInt.arbitrary)), imp, imp, imp)
-  checkAlgebraIsoLaws("ListF ⇔ Seq", ListF.seqIso[Int])(Arbitrary(Gen.listOf(Arbitrary.arbInt.arbitrary).map(_.toSeq)), Equal.equalA[Seq[Int]], imp, imp)
+  checkAlgebraIsoLaws("ListF ⇔ List", ListF.listIso[Int])(Arbitrary(Gen.listOf(Arbitrary.arbInt.arbitrary)), imp, imp, imp, imp)
+  checkAlgebraIsoLaws("ListF ⇔ Seq", ListF.seqIso[Int])(Arbitrary(Gen.listOf(Arbitrary.arbInt.arbitrary).map(_.toSeq)), Equal.equalA[Seq[Int]], imp, imp, imp)
 }

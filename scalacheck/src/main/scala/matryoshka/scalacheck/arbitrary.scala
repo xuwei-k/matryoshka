@@ -26,6 +26,7 @@ import scala.{Option, None}
 import org.scalacheck._
 import scalaz._, Scalaz._
 import scalaz.scalacheck.ScalaCheckBinding._
+import scalaz.scalacheck.ScalazArbitrary._
 
 sealed trait ArbitraryInstances0 {
   implicit def delayArbitrary[F[_], A](
@@ -92,6 +93,25 @@ trait ArbitraryInstances extends ArbitraryInstances0 {
               else
                 Gen.resize(size / 2, cofreeArbitrary(F, A).arbitrary))).arbitrary)(
           Cofree(_, _))))
+
+  implicit def freeCogen[F[_]: Functor, A: Cogen](implicit F: Delay[Cogen, F]): Cogen[Free[F, A]] =
+    Cogen { (seed, f) =>
+      implicit lazy val c = F(freeCogen[F, A])
+      Cogen[F[Free[F, A]] \/ A].perturb(seed, f.resume)
+    }
+
+  implicit def cofreeCogen[F[_], A: Cogen](implicit F: Delay[Cogen, F]): Cogen[Cofree[F, A]] =
+    Cogen { (seed, c) =>
+      implicit val f = F(cofreeCogen[F, A])
+      Cogen[(A, F[Cofree[F, A]])].perturb(seed, c.toPair)
+    }
+
+  // TODO improve
+  implicit def muCogen[F[_]]: Cogen[Mu[F]] =
+    Cogen[scala.Unit].contramap(_ => ())
+
+  implicit def envTCogen[E: Cogen, W[_], A](implicit W: Cogen[W[A]]): Cogen[EnvT[E, W, A]] =
+    Cogen[(E, W[A])].contramap(_.run)
 
   implicit def freeArbitrary[F[_], A](implicit F: Delay[Arbitrary, F], A: Arbitrary[A]): Arbitrary[Free[F, A]] =
     Arbitrary(

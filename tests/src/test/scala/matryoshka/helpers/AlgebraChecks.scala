@@ -28,35 +28,35 @@ import org.typelevel.discipline.specs2.mutable._
 import scalaz._, Scalaz._
 
 trait AlgebraChecks extends SpecificationLike with Discipline {
-  def checkFoldIsoLaws[T: Arbitrary: Equal, F[_]: Functor, A: Arbitrary: Equal]
+  def checkFoldIsoLaws[T: Arbitrary: Equal, F[_]: Functor, A: Arbitrary: Equal: Cogen]
     (name: String, iso: AlgebraIso[F, A])
     (implicit TR: Recursive.Aux[T, F], TC: Corecursive.Aux[T, F]) =
     checkAll(name + " Iso", IsoTests(foldIso[T, F, A](iso)))
 
   def checkFoldPrismLaws
-    [T: Arbitrary: Equal, F[_]: Traverse, A: Arbitrary: Equal]
+    [T: Arbitrary: Equal, F[_]: Traverse, A: Arbitrary: Equal: Cogen]
     (name: String, prism: AlgebraPrism[F, A])
     (implicit TR: Recursive.Aux[T, F], TC: Corecursive.Aux[T, F]) =
     checkAll(name + " Prism", PrismTests(foldPrism(prism)))
 
   def checkUnfoldPrismLaws
-    [T: Arbitrary: Equal, F[_]: Traverse, A: Arbitrary: Equal]
+    [T: Arbitrary: Equal: Cogen, F[_]: Traverse, A: Arbitrary: Equal]
     (name: String, prism: CoalgebraPrism[F, A])
     (implicit TR: Recursive.Aux[T, F], TC: Corecursive.Aux[T, F]) =
     checkAll(name + " Prism", PrismTests(unfoldPrism(prism)))
 
-  def checkAlgebraIsoLaws[F[_], A: Arbitrary: Equal]
+  def checkAlgebraIsoLaws[F[_], A: Arbitrary: Equal: Cogen]
     (name: String, iso: AlgebraIso[F, A])
     (implicit FA: Delay[Arbitrary, F], FE: Delay[Equal, F]) =
     checkAll(name + " Iso", IsoTests(iso))
 
-  def checkAlgebraPrismLaws[F[_], A: Arbitrary: Equal]
+  def checkAlgebraPrismLaws[F[_], A: Arbitrary: Equal: Cogen]
     (name: String, prism: AlgebraPrism[F, A])
     (implicit FA: Delay[Arbitrary, F], FE: Delay[Equal, F]) =
     checkAll(name + " Prism", PrismTests(prism))
 
   def checkCoalgebraPrismLaws[F[_], A: Arbitrary: Equal]
     (name: String, prism: CoalgebraPrism[F, A])
-    (implicit FA: Delay[Arbitrary, F], FE: Delay[Equal, F]) =
+    (implicit FA: Delay[Arbitrary, F], FE: Delay[Equal, F], C: Cogen[F[A]]) =
     checkAll(name + " Prism", PrismTests(prism))
 }

@@ -7,23 +7,20 @@ import org.scalajs.sbtplugin.cross.CrossProject
 
 lazy val checkHeaders = taskKey[Unit]("Fail the build if createHeaders is not up-to-date")
 
-val monocleVersion = "1.2.2"
-val scalazVersion = "7.2.1"
-// Latest version built against scalacheck 1.12.5
+val monocleVersion = "1.3.2"
+val scalazVersion = "7.2.7"
 // doesn't support scala.js yet, until then tests are JVM-only
-val specs2Version = "3.7"
-val scalacheckVersion = "1.12.5"
+val specs2Version = "3.8.6"
+val scalacheckVersion = "1.13.4"
 
-// `scalaz-scalack-binding` is built with `scalacheck` 1.12.5 so we are stuck
-// with that version
 def scalacheckDependencies = Seq(
   "org.scalacheck" %% "scalacheck"                % scalacheckVersion,
-  "org.scalaz"     %% "scalaz-scalacheck-binding" % scalazVersion
+  "org.scalaz"     %% "scalaz-scalacheck-binding" % s"${scalazVersion}-scalacheck-1.13"
 )
 def testsDependencies = libraryDependencies ++= scalacheckDependencies ++ Seq(
-  "org.typelevel"              %% "discipline"        % "0.4"          % "test",
+  "org.typelevel"              %% "discipline"        % "0.7.2"        % "test",
   "com.github.julien-truffaut" %% "monocle-law"       % monocleVersion % "test",
-  "org.typelevel"              %% "scalaz-specs2"     % "0.4.0"        % "test",
+  "org.typelevel"              %% "scalaz-specs2"     % "0.5.0"        % "test",
   "org.specs2"                 %% "specs2-core"       % specs2Version  % "test" force(),
   "org.specs2"                 %% "specs2-scalacheck" % specs2Version  % "test" force()
 )
@@ -50,6 +47,14 @@ lazy val standardSettings = Seq[Setting[_]](
     "bintray/non" at "http://dl.bintray.com/non/maven"),
   addCompilerPlugin("org.spire-math" %% "kind-projector"   % "0.9.3"),
   addCompilerPlugin("org.scalamacros" % "paradise"         % "2.1.0" cross CrossVersion.full),
+  libraryDependencies ++= {
+    CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, v)) if v <= 11 =>
+        compilerPlugin("com.milessabin"  % "si2712fix-plugin" % "1.2.0" cross CrossVersion.full) :: Nil
+      case _ =>
+        Nil
+    }
+  },
   ScoverageKeys.coverageHighlighting := true,
 
   scalacOptions ++= Seq(

@@ -28,6 +28,7 @@ import scala.{Int}
 
 import org.specs2.mutable._
 import scalaz._, Scalaz._
+import scalaz.scalacheck.ScalazArbitrary._
 import scalaz.scalacheck.ScalazProperties._
 
 class EnvTSpec extends Specification with CheckAll with AlgebraChecks {
