@@ -87,9 +87,9 @@ trait ArbitraryInstances extends ArbitraryInstances0 {
     Arbitrary(
       Gen.sized(size =>
         (Gen.resize(size / 2, A.arbitrary) ⊛
-          F(Arbitrary(
+          F(Arbitrary[Cofree[F, A]](
               if (size <= 0)
-                Gen.fail[Cofree[F, A]]
+                cofreeArbitrary(F, A).arbitrary
               else
                 Gen.resize(size / 2, cofreeArbitrary(F, A).arbitrary))).arbitrary)(
           Cofree(_, _))))
@@ -121,7 +121,7 @@ trait ArbitraryInstances extends ArbitraryInstances0 {
             A.arbitrary ∘ (_.point[Free[F, ?]]),
             F(Arbitrary(
               if (size <= 0)
-                Gen.fail[Free[F, A]]
+                A.arbitrary ∘ (_.point[Free[F, ?]])
               else
                 freeArbitrary(F, A).arbitrary)).arbitrary ∘ (Free.liftF(_).join)))))
 
